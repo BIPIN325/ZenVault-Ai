@@ -6,6 +6,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useVault } from '@/context/VaultContext';
 import { decryptData } from '@/utils/crypto';
 import { cosineSimilarity } from '@/utils/similarity';
+import { rerankResults, ScoredChunk } from '@/utils/hybridSearch';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/utils/cn';
 
@@ -61,8 +62,7 @@ export default function ChatInterface({ isAiReady, generateEmbedding, hasDocumen
 
       setStatusText('Searching secure vault...');
       const allChunks = await vaultDb.getAllChunks();
-      
-      const scoredChunks: { score: number; text: string; documentId: string; chunkIndex: number }[] = [];
+      const rawChunks: ScoredChunk[] = [];
 
       for (const chunk of allChunks) {
         try {
@@ -70,9 +70,9 @@ export default function ChatInterface({ isAiReady, generateEmbedding, hasDocumen
           const payload = JSON.parse(decryptedPayload);
           
           if (payload.vector && payload.text) {
-            const score = cosineSimilarity(queryVector, payload.vector);
-            scoredChunks.push({
-              score,
+            const vectorScore = cosineSimilarity(queryVector, payload.vector);
+            rawChunks.push({
+              vectorScore,
               text: payload.text,
               documentId: chunk.documentId,
               chunkIndex: chunk.chunkIndex
@@ -83,8 +83,13 @@ export default function ChatInterface({ isAiReady, generateEmbedding, hasDocumen
         }
       }
 
-      scoredChunks.sort((a, b) => b.score - a.score);
-      const topChunks = scoredChunks.slice(0, 3);
+      setStatusText('Running Hybrid Search (BM25 + Vector)...');
+      const rankedChunks = rerankResults(query, rawChunks, 0.5);
+      
+      const topChunks = rankedChunks.slice(0, 5).map(c => ({
+        ...c,
+        score: c.finalScore || c.vectorScore
+      }));
 
       setStatusText('Preparing prompt context...');
       const citations: { title: string; chunkIndex: number; score: number }[] = [];

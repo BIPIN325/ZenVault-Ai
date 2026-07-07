@@ -14,9 +14,10 @@ export interface DocumentItem {
 interface DocumentListProps {
   documents: DocumentItem[];
   onDocumentClick: (doc: DocumentItem) => void;
+  onDocumentDeleted?: () => void;
 }
 
-export default function DocumentList({ documents, onDocumentClick }: DocumentListProps) {
+export default function DocumentList({ documents, onDocumentClick, onDocumentDeleted }: DocumentListProps) {
   const [localDocs, setLocalDocs] = useState<DocumentItem[]>([]);
   const [isViewerOpen, setIsViewerOpen] = useState(false);
   const [selectedDocumentId, setSelectedDocumentId] = useState<string | null>(null);
@@ -45,6 +46,9 @@ export default function DocumentList({ documents, onDocumentClick }: DocumentLis
         setLocalDocs(prev => prev.filter(d => d.id !== doc.id));
         setToastMessage("Document and associated vectors permanently shredded.");
         setTimeout(() => setToastMessage(null), 4000);
+        if (onDocumentDeleted) {
+          onDocumentDeleted();
+        }
       } else {
         alert("Failed to delete document. Check console for details.");
       }

@@ -40,6 +40,7 @@ export default function Home() {
   const [isProfileChecking, setIsProfileChecking] = useState(true);
   const { timeLeftFormatted } = useInactivityLock();
   const { vaultDb, activeVault } = useVault();
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   // Debug Helper and Initial Fetch
   useEffect(() => {
@@ -64,7 +65,7 @@ export default function Home() {
         setDocuments(enhancedDocs);
 
         // Fetch Vault Stats
-        const stats = await getVaultStats();
+        const stats = await getVaultStats(vaultDb);
         setVaultStats(stats);
 
         // Fetch Profile
@@ -75,7 +76,7 @@ export default function Home() {
       
       fetchDocs();
     }
-  }, [cryptoKey, uploadSuccess, activeVault, vaultDb]);
+  }, [cryptoKey, uploadSuccess, activeVault, vaultDb, refreshTrigger]);
 
   // Auto-initialize the model when there is at least one document
   useEffect(() => {
@@ -124,6 +125,7 @@ export default function Home() {
         });
       }
       setUploadSuccess(true);
+      setRefreshTrigger(prev => prev + 1);
       setTimeout(() => setUploadSuccess(false), 3000);
     } catch (error: any) {
       console.error("Error processing file:", error);
@@ -298,7 +300,11 @@ export default function Home() {
                                   Indexed Document Vectors
                                 </h3>
                               </div>
-                              <DocumentList documents={documents} onDocumentClick={setSelectedDoc} />
+                              <DocumentList 
+                                documents={documents} 
+                                onDocumentClick={setSelectedDoc} 
+                                onDocumentDeleted={() => setRefreshTrigger(prev => prev + 1)}
+                              />
                             </div>
 
                           </div>

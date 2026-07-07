@@ -1,14 +1,16 @@
 "use client";
 
 import React, { useState, useRef } from 'react';
-import { DownloadCloud, UploadCloud, AlertTriangle, Key, Loader2, CheckCircle2 } from 'lucide-react';
+import { DownloadCloud, UploadCloud, AlertTriangle, Key, Loader2, CheckCircle2, RefreshCw } from 'lucide-react';
 import { exportVault, importVault } from '@/utils/backup';
+import DeviceSyncModal from './DeviceSyncModal';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/utils/cn';
 
 export default function SettingsPanel() {
   const [isExporting, setIsExporting] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
+  const [isSyncModalOpen, setIsSyncModalOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -151,7 +153,35 @@ export default function SettingsPanel() {
           </button>
         </div>
 
+        {/* Sync Card */}
+        <div className="glass-card p-6 flex flex-col relative overflow-hidden group border border-white/5 bg-zinc-950/60 hover:border-violet-500/30 transition-colors md:col-span-2">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-violet-500/5 rounded-full blur-[50px] pointer-events-none group-hover:bg-violet-500/10 transition-colors" />
+          
+          <div className="flex items-center gap-3 mb-4 relative z-10">
+            <div className="w-10 h-10 rounded-lg bg-violet-500/10 border border-violet-500/20 flex items-center justify-center">
+              <RefreshCw className="w-5 h-5 text-violet-400" />
+            </div>
+            <h3 className="text-lg font-semibold text-zinc-200">P2P Device Sync</h3>
+          </div>
+          
+          <p className="text-xs text-zinc-500 mb-6 flex-1 leading-relaxed relative z-10 max-w-lg">
+            Synchronize your encrypted vault directly with another device on the same local network using a 100% serverless WebRTC tunnel.
+          </p>
+
+          <button
+            onClick={() => setIsSyncModalOpen(true)}
+            className="w-full sm:w-auto self-start flex items-center justify-center gap-2 bg-zinc-900 hover:bg-violet-600/20 text-violet-400 hover:text-violet-300 border border-violet-500/30 font-medium rounded-xl px-6 py-3 focus:outline-none focus:ring-2 focus:ring-violet-500/50 transition-all shadow-sm relative z-10"
+          >
+            <RefreshCw className="w-4 h-4" /> Open Sync Manager
+          </button>
+        </div>
+
       </div>
+
+      <DeviceSyncModal 
+        isOpen={isSyncModalOpen} 
+        onClose={() => setIsSyncModalOpen(false)} 
+      />
     </div>
   );
 }
