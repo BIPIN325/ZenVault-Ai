@@ -1,4 +1,4 @@
-import { getAllDocuments, getAllChunks } from './db';
+import { VaultDB } from './db';
 
 export interface VaultMetrics {
   totalDocuments: number;
@@ -16,27 +16,45 @@ function formatBytes(bytes: number, decimals = 2): string {
   return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
 }
 
-export async function getVaultStats(): Promise<VaultMetrics> {
-  const documents = await getAllDocuments();
-  const chunks = await getAllChunks();
-
-  // Estimate storage size by serializing to JSON string and taking byte length
-  let storageSizeBytes = 0;
-  
-  if (documents.length > 0) {
-    const docsStr = JSON.stringify(documents);
-    storageSizeBytes += new Blob([docsStr]).size;
-  }
-  
-  if (chunks.length > 0) {
-    const chunksStr = JSON.stringify(chunks);
-    storageSizeBytes += new Blob([chunksStr]).size;
-  }
-
+function createEmptyMetrics(): VaultMetrics {
   return {
-    totalDocuments: documents.length,
-    totalChunks: chunks.length,
-    storageSizeBytes,
-    storageSizeFormatted: formatBytes(storageSizeBytes)
+    totalDocuments: 0,
+    totalChunks: 0,
+    storageSizeBytes: 0,
+    storageSizeFormatted: '0 Bytes'
   };
+}
+
+export async function getVaultStats(vaultDb?: VaultDB): Promise<VaultMetrics> {
+  if (typeof window === 'undefined') {
+    return { ...createEmptyMetrics() };
+  }
+
+  try {
+    const documents = vaultDb ? await vaultDb.getAllDocuments() : [];
+    const chunks = vaultDb ? await vaultDb.getAllChunks() : [];
+    
+    // In localforage, measuring exact byte size requires estimating based on JSON stringification
+    let storageSizeBytes = 0;
+    
+    if (documents.length > 0) {
+      const docsStr = JSON.stringify(documents);
+      storageSizeBytes += new Blob([docsStr]).size;
+    }
+    
+    if (chunks.length > 0) {
+      const chunksStr = JSON.stringify(chunks);
+      storageSizeBytes += new Blob([chunksStr]).size;
+    }
+    
+    return {
+      totalDocuments: documents.length,
+      totalChunks: chunks.length,
+      storageSizeBytes,
+      storageSizeFormatted: formatBytes(storageSizeBytes)
+    };
+  } catch (error) {
+    console.error("Failed to get vault stats", error);
+    return { ...createEmptyMetrics() };
+  }
 }

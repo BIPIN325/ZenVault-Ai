@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, FileText, Database, ShieldCheck, HardDrive, Terminal } from 'lucide-react';
-import { getDocumentChunks } from '@/utils/db';
+import { useVault } from '@/context/VaultContext';
 
 interface MetadataDrawerProps {
   isOpen: boolean;
@@ -11,10 +11,11 @@ interface MetadataDrawerProps {
 
 export default function MetadataDrawer({ isOpen, onClose, document }: MetadataDrawerProps) {
   const [sizeStr, setSizeStr] = useState<string>('Calculating...');
+  const { vaultDb } = useVault();
 
   useEffect(() => {
-    if (document && isOpen) {
-      getDocumentChunks(document.id).then(chunks => {
+    if (document && isOpen && vaultDb) {
+      vaultDb.getDocumentChunks(document.id).then(chunks => {
         const bytes = new Blob([JSON.stringify(chunks)]).size;
         const k = 1024;
         const i = bytes === 0 ? 0 : Math.floor(Math.log(bytes) / Math.log(k));

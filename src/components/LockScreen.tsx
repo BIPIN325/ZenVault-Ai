@@ -2,12 +2,12 @@
 
 import React, { useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
-import { Shield, Lock, ArrowRight, ShieldCheck, AlertCircle } from 'lucide-react';
+import { Shield, Lock, ArrowRight, ShieldCheck, AlertCircle, Fingerprint } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/utils/cn';
 
 export default function LockScreen() {
-  const { unlockVault, isFirstSetup, isLoading } = useAuth();
+  const { unlockVault, unlockVaultBiometric, isFirstSetup, hasBiometrics, isLoading } = useAuth();
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -31,6 +31,16 @@ export default function LockScreen() {
       setPassword('');
     }
     
+    setIsSubmitting(false);
+  };
+
+  const handleBiometricUnlock = async () => {
+    setError('');
+    setIsSubmitting(true);
+    const success = await unlockVaultBiometric();
+    if (!success) {
+      setError('Biometric unlock failed.');
+    }
     setIsSubmitting(false);
   };
 
@@ -175,6 +185,26 @@ export default function LockScreen() {
             )}
           </motion.button>
         </motion.form>
+
+        <AnimatePresence>
+          {!isFirstSetup && hasBiometrics && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              className="mt-4"
+            >
+              <button
+                type="button"
+                onClick={handleBiometricUnlock}
+                disabled={isSubmitting}
+                className="w-full flex items-center justify-center gap-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 font-medium rounded-xl py-4 transition-colors disabled:opacity-50 disabled:cursor-not-allowed border border-white/5"
+              >
+                <Fingerprint className="w-5 h-5 text-emerald-400" />
+                Unlock with Biometrics
+              </button>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         <motion.div 
           initial={{ opacity: 0 }}

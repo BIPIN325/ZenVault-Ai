@@ -1,38 +1,46 @@
 import React, { useState, useEffect } from 'react';
 import { FileText, Database, Eye, Trash2, CheckCircle } from 'lucide-react';
 import DocumentViewerModal from './DocumentViewerModal';
-import { deleteDocument } from '@/utils/db';
+import { useVault } from '@/context/VaultContext';
 import { motion, AnimatePresence } from 'framer-motion';
 
+export interface DocumentItem {
+  id: string;
+  title: string;
+  chunksCount: number;
+  createdAt: string;
+}
+
 interface DocumentListProps {
-  documents: any[];
-  onDocumentClick: (doc: any) => void;
+  documents: DocumentItem[];
+  onDocumentClick: (doc: DocumentItem) => void;
 }
 
 export default function DocumentList({ documents, onDocumentClick }: DocumentListProps) {
-  const [localDocs, setLocalDocs] = useState<any[]>([]);
+  const [localDocs, setLocalDocs] = useState<DocumentItem[]>([]);
   const [isViewerOpen, setIsViewerOpen] = useState(false);
   const [selectedDocumentId, setSelectedDocumentId] = useState<string | null>(null);
   const [selectedFileName, setSelectedFileName] = useState('');
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const { vaultDb } = useVault();
 
   useEffect(() => {
     setLocalDocs(documents);
   }, [documents]);
 
-  const handleViewDocument = (e: React.MouseEvent, doc: any) => {
+  const handleViewDocument = (e: React.MouseEvent, doc: DocumentItem) => {
     e.stopPropagation(); // Prevent triggering onDocumentClick (Metadata Drawer)
     setSelectedDocumentId(doc.id);
     setSelectedFileName(doc.title);
     setIsViewerOpen(true);
   };
 
-  const handleDeleteDocument = async (e: React.MouseEvent, doc: any) => {
+  const handleDeleteDocument = async (e: React.MouseEvent, doc: DocumentItem) => {
     e.stopPropagation(); // Prevent triggering onDocumentClick
     const confirmed = window.confirm("Are you sure you want to permanently delete this document and its encrypted data? This action cannot be undone.");
     
     if (confirmed) {
-      const success = await deleteDocument(doc.id);
+      const success = await vaultDb.deleteDocument(doc.id);
       if (success) {
         setLocalDocs(prev => prev.filter(d => d.id !== doc.id));
         setToastMessage("Document and associated vectors permanently shredded.");

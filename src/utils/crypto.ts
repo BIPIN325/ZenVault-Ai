@@ -42,6 +42,19 @@ export async function deriveKey(password: string, salt: Uint8Array): Promise<Cry
 }
 
 /**
+ * Imports a 32-byte raw key directly for AES-GCM (used for Biometric PRF).
+ */
+export async function importRawKey(keyMaterial: Uint8Array): Promise<CryptoKey> {
+  return window.crypto.subtle.importKey(
+    "raw",
+    keyMaterial,
+    { name: "AES-GCM", length: 256 },
+    false,
+    ["encrypt", "decrypt"]
+  );
+}
+
+/**
  * Encrypts a string using the provided AES-GCM key.
  * 
  * @param data The plain text data to encrypt.

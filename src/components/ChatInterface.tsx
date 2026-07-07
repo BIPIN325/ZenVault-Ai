@@ -3,7 +3,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Send, Bot, User, Loader2, FileText, Database, Shield, TerminalSquare } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
-import { getAllChunks, getDocumentMetadata } from '@/utils/db';
+import { useVault } from '@/context/VaultContext';
 import { decryptData } from '@/utils/crypto';
 import { cosineSimilarity } from '@/utils/similarity';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -23,7 +23,16 @@ interface ChatInterfaceProps {
 }
 
 export default function ChatInterface({ isAiReady, generateEmbedding, hasDocuments }: ChatInterfaceProps) {
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [messages, setMessages] = useState<Message[]>([
+    { id: 'initial', role: 'assistant', content: 'Hello! I am your isolated AI engine. How can I help you query your documents today?' }
+  ]);
+  const { vaultDb, activeVault } = useVault();
+
+  // Reset chat when vault switches
+  useEffect(() => {
+    setMessages([{ id: Date.now().toString(), role: 'assistant', content: `Hello! I am your isolated AI engine. You are now exploring the **${activeVault}**. How can I help you?` }]);
+  }, [activeVault]);
+
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [statusText, setStatusText] = useState('');
@@ -51,7 +60,7 @@ export default function ChatInterface({ isAiReady, generateEmbedding, hasDocumen
       const queryVector = await generateEmbedding(query);
 
       setStatusText('Searching secure vault...');
-      const allChunks = await getAllChunks();
+      const allChunks = await vaultDb.getAllChunks();
       
       const scoredChunks: { score: number; text: string; documentId: string; chunkIndex: number }[] = [];
 
@@ -81,14 +90,20 @@ export default function ChatInterface({ isAiReady, generateEmbedding, hasDocumen
       const citations: { title: string; chunkIndex: number; score: number }[] = [];
       const contextBlocks: string[] = [];
       const seenText = new Set<string>();
+      const uniqueDocs = new Set<string>();
 
       for (const chunk of topChunks) {
         if (chunk.score > 0.2 && !seenText.has(chunk.text)) {
           seenText.add(chunk.text);
-          const meta = await getDocumentMetadata(chunk.documentId);
-          const title = meta?.title || 'Unknown Document';
-          citations.push({ title, chunkIndex: chunk.chunkIndex, score: chunk.score });
-          contextBlocks.push(`[Source: ${title}]\n${chunk.text}`);
+          if (!uniqueDocs.has(chunk.documentId)) {
+            const meta = await vaultDb.getDocumentMetadata(chunk.documentId);
+            if (meta) {
+              uniqueDocs.add(chunk.documentId);
+              const title = meta?.title || 'Unknown Document';
+              citations.push({ title, chunkIndex: chunk.chunkIndex, score: chunk.score });
+              contextBlocks.push(`[Source: ${title}]\n${chunk.text}`);
+            }
+          }
         }
       }
 

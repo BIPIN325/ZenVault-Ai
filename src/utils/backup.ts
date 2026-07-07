@@ -1,4 +1,5 @@
-import { getAllDocuments, getAllChunks, clearAllData, saveDocumentsBatch, saveChunksBatch, DocumentMetadata, EncryptedChunk } from './db';
+import { VaultDB, DocumentMetadata, EncryptedChunk } from './db';
+import { encryptData, decryptData } from './crypto';
 
 interface ZenVaultBackup {
   version: number;
@@ -13,9 +14,9 @@ interface ZenVaultBackup {
   };
 }
 
-export async function exportVault(): Promise<void> {
-  const documents = await getAllDocuments();
-  const chunks = await getAllChunks();
+export async function exportVault(vaultDb: VaultDB): Promise<void> {
+  const documents = await vaultDb.getAllDocuments();
+  const chunks = await vaultDb.getAllChunks();
 
   const backup: ZenVaultBackup = {
     version: 1,
@@ -35,7 +36,7 @@ export async function exportVault(): Promise<void> {
   const url = URL.createObjectURL(blob);
 
   const dateStr = new Date().toISOString().split('T')[0];
-  const filename = `zen_backup_${dateStr}.vault`;
+  const filename = `zen_backup_${vaultDb.vaultName}_${dateStr}.vault`;
 
   const link = document.createElement('a');
   link.href = url;
@@ -46,7 +47,7 @@ export async function exportVault(): Promise<void> {
   URL.revokeObjectURL(url);
 }
 
-export async function importVault(file: File): Promise<void> {
+export async function importVault(vaultDb: VaultDB, file: File): Promise<void> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     
@@ -61,11 +62,11 @@ export async function importVault(file: File): Promise<void> {
         }
 
         // 1. Clear existing localforage DB
-        await clearAllData();
+        await vaultDb.clearAllData();
 
         // 2. Restore localforage DB
-        await saveDocumentsBatch(backup.localforage.documents || []);
-        await saveChunksBatch(backup.localforage.chunks || []);
+        await vaultDb.saveDocumentsBatch(backup.localforage.documents || []);
+        await vaultDb.saveChunksBatch(backup.localforage.chunks || []);
 
         // 3. Restore localStorage salts
         if (backup.localStorage.vault_salt) {

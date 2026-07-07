@@ -6,7 +6,7 @@ import { X, Copy, Check, FileText, Loader2, Eye, EyeOff, AlertTriangle } from 'l
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { useAuth } from '@/context/AuthContext';
-import { getDocumentMetadata } from '@/utils/db';
+import { useVault } from '@/context/VaultContext';
 import { decryptData } from '@/utils/crypto';
 import { cn } from '@/utils/cn';
 
@@ -25,6 +25,7 @@ export default function DocumentViewerModal({ documentId, isOpen, onClose, fileN
   const [isPrivacyMode, setIsPrivacyMode] = useState(false);
   const [showClipboardWarning, setShowClipboardWarning] = useState(false);
   const { cryptoKey } = useAuth();
+  const { vaultDb } = useVault();
 
   useEffect(() => {
     if (isOpen && documentId && cryptoKey) {
@@ -35,7 +36,7 @@ export default function DocumentViewerModal({ documentId, isOpen, onClose, fileN
 
       const fetchAndDecrypt = async () => {
         try {
-          const metadata = await getDocumentMetadata(documentId);
+          const metadata = await vaultDb.getDocumentMetadata(documentId);
           if (!metadata || !metadata.encryptedRawBody || !metadata.rawIv) {
             throw new Error("Encrypted raw document text not found. This document may have been uploaded prior to the Dual-Save pipeline update.");
           }
@@ -77,9 +78,11 @@ export default function DocumentViewerModal({ documentId, isOpen, onClose, fileN
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
+        onClick={onClose}
         className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-md flex items-center justify-center p-4 sm:p-6 md:p-12"
       >
         <motion.div
+          onClick={(e) => e.stopPropagation()}
           initial={{ opacity: 0, y: 20, scale: 0.95 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: 20, scale: 0.95 }}

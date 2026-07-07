@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 import LockScreen from "@/components/LockScreen";
-import { LogOut, ShieldAlert, Database, Key, HardDrive, Cpu, TerminalSquare, FileText } from "lucide-react";
+import { LogOut, ShieldAlert, Database, Key, HardDrive, Cpu, TerminalSquare, FileText, Network } from "lucide-react";
 import FileUploader from "@/components/FileUploader";
 import ChatInterface from "@/components/ChatInterface";
 import SettingsPanel from "@/components/SettingsPanel";
@@ -12,7 +12,10 @@ import DocumentList from "@/components/DocumentList";
 import MetadataDrawer from "@/components/MetadataDrawer";
 import { v4 as uuidv4 } from "uuid";
 import { chunkText } from "@/utils/chunker";
-import { saveDocumentMetadata, saveEncryptedChunk } from "@/utils/db";
+import { useVault } from "@/context/VaultContext";
+import VaultSwitcher from "@/components/VaultSwitcher";
+import KnowledgeGraph3D from "@/components/KnowledgeGraph3D";
+import { generateTags } from "@/utils/autoTagger";
 import { encryptData } from "@/utils/crypto";
 import { useLocalAI } from "@/hooks/useLocalAI";
 import { getVaultStats, VaultMetrics } from "@/utils/telemetry";
@@ -28,7 +31,7 @@ export default function Home() {
   const { isLocked, lockVault, isLoading, cryptoKey } = useAuth();
   const [isProcessing, setIsProcessing] = useState(false);
   const [uploadSuccess, setUploadSuccess] = useState(false);
-  const [activeView, setActiveView] = useState<'chat' | 'repository' | 'keys'>('repository');
+  const [activeView, setActiveView] = useState<'chat' | 'repository' | 'keys' | 'graph'>('repository');
   const { generateEmbedding, initModel, isDownloading, progressEvent, isReady } = useLocalAI();
   const [documents, setDocuments] = useState<any[]>([]);
   const [vaultStats, setVaultStats] = useState<VaultMetrics | null>(null);
@@ -36,24 +39,19 @@ export default function Home() {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [isProfileChecking, setIsProfileChecking] = useState(true);
   const { timeLeftFormatted } = useInactivityLock();
+  const { vaultDb, activeVault } = useVault();
 
   // Debug Helper and Initial Fetch
   useEffect(() => {
     if (cryptoKey) {
       const fetchDocs = async () => {
-        const { getAllDocuments } = await import("@/utils/db");
-        const localforage = (await import("localforage")).default;
-        const chunksStore = localforage.createInstance({
-          name: 'ZenVault',
-          storeName: 'chunks',
-        });
-        
-        const docs = await getAllDocuments();
+        const docs = await vaultDb.getAllDocuments();
+        const chunks = await vaultDb.getAllChunks();
         const chunkCounts: Record<string, number> = {};
         
-        await chunksStore.iterate((value: any) => {
-          if (value && value.documentId) {
-            chunkCounts[value.documentId] = (chunkCounts[value.documentId] || 0) + 1;
+        chunks.forEach((chunk) => {
+          if (chunk && chunk.documentId) {
+            chunkCounts[chunk.documentId] = (chunkCounts[chunk.documentId] || 0) + 1;
           }
         });
         
@@ -77,7 +75,7 @@ export default function Home() {
       
       fetchDocs();
     }
-  }, [cryptoKey, uploadSuccess]);
+  }, [cryptoKey, uploadSuccess, activeVault, vaultDb]);
 
   // Auto-initialize the model when there is at least one document
   useEffect(() => {
@@ -101,12 +99,15 @@ export default function Home() {
       
       const { ciphertext: encryptedRawBody, iv: rawIv } = await encryptData(text, cryptoKey);
       
-      await saveDocumentMetadata({
+      const tags = await generateTags(text);
+
+      await vaultDb.saveDocumentMetadata({
         id: docId,
         title: file.name,
         createdAt: Date.now(),
         encryptedRawBody,
-        rawIv
+        rawIv,
+        tags
       });
 
       for (let i = 0; i < chunks.length; i++) {
@@ -114,7 +115,7 @@ export default function Home() {
         const payload = JSON.stringify({ text: chunks[i], vector });
         const { ciphertext, iv } = await encryptData(payload, cryptoKey);
         
-        await saveEncryptedChunk({
+        await vaultDb.saveEncryptedChunk({
           id: uuidv4(),
           documentId: docId,
           ciphertext,
@@ -187,6 +188,8 @@ export default function Home() {
               </div>
               
               <div className="flex items-center gap-4 z-50 relative">
+                <VaultSwitcher />
+                <div className="w-px h-6 bg-white/10 mx-1 hidden sm:block" />
                 <UserProfileBadge profile={profile} timeLeftFormatted={timeLeftFormatted} />
                 <motion.button 
                   whileHover={{ scale: 1.05 }}
@@ -213,6 +216,7 @@ export default function Home() {
                 {[
                   { id: 'chat', icon: TerminalSquare, label: 'Vault Chat' },
                   { id: 'repository', icon: Database, label: 'Document Repository' },
+                  { id: 'graph', icon: Network, label: 'Knowledge Graph' },
                   { id: 'keys', icon: Key, label: 'Cryptographic Keys' }
                 ].map((item) => {
                   const Icon = item.icon;
@@ -407,6 +411,22 @@ export default function Home() {
                         className="h-full pt-4"
                       >
                         <SettingsPanel />
+                      </motion.div>
+                    )}
+
+                    {activeView === 'graph' && (
+                      <motion.div
+                        key="graph"
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        transition={{ duration: 0.3 }}
+                        className="h-full pt-4"
+                      >
+                        <KnowledgeGraph3D onNodeClick={(id) => {
+                          const doc = documents.find(d => d.id === id);
+                          if (doc) setSelectedDoc(doc);
+                        }} />
                       </motion.div>
                     )}
 
