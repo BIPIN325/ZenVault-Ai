@@ -86,14 +86,27 @@ export default function LockScreen() {
   const [status, setStatus] = useState<'IDLE' | 'PROCESSING' | 'GRANTED'>('IDLE');
   const [error, setError] = useState('');
   
-  const [time, setTime] = useState('0000-00-00 00:00:00 ZULU');
+  const [time, setTime] = useState('0000-00-00 00:00:00 LOCAL');
   const [liveHash, setLiveHash] = useState('AWAITING_INPUT...');
 
-  // Live UTC/ZULU Time Clock
+  // Live Local Time & Location Clock
   useEffect(() => {
-    const timer = setInterval(() => {
-      setTime(new Date().toISOString().replace('T', ' ').substring(0, 19) + ' ZULU');
-    }, 1000);
+    const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'LOCAL';
+    
+    const updateTime = () => {
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = String(now.getMonth() + 1).padStart(2, '0');
+      const day = String(now.getDate()).padStart(2, '0');
+      const hours = String(now.getHours()).padStart(2, '0');
+      const minutes = String(now.getMinutes()).padStart(2, '0');
+      const seconds = String(now.getSeconds()).padStart(2, '0');
+      
+      setTime(`${year}-${month}-${day} ${hours}:${minutes}:${seconds} ${timeZone.toUpperCase()}`);
+    };
+    
+    updateTime();
+    const timer = setInterval(updateTime, 1000);
     return () => clearInterval(timer);
   }, []);
 

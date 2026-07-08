@@ -1,4 +1,3 @@
-import * as pdfjsLib from 'pdfjs-dist';
 // @ts-expect-error - mammoth does not provide official types
 import mammoth from 'mammoth';
 import { v4 as uuidv4 } from 'uuid';
@@ -69,6 +68,7 @@ export async function extractTextFromFile(file: File): Promise<string> {
 
     // 4. PDF Documents
     if (type === 'application/pdf' || name.endsWith('.pdf')) {
+      const pdfjsLib = await import('pdfjs-dist');
       pdfjsLib.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.mjs`;
       const arrayBuffer = await file.arrayBuffer();
       const data = new Uint8Array(arrayBuffer);

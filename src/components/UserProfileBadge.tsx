@@ -44,18 +44,6 @@ export default function UserProfileBadge({ profile, timeLeftFormatted }: UserPro
         </div>
       </div>
 
-      <div className="w-px h-8 bg-white/10 mx-1" />
-
-      {/* Auto-lock countdown */}
-      <div className="flex items-center gap-2">
-        <div className="w-8 h-8 rounded-lg bg-rose-500/10 border border-rose-500/20 flex items-center justify-center shrink-0">
-          <Lock className="w-4 h-4 text-rose-400" />
-        </div>
-        <div className="flex flex-col justify-center">
-          <span className="text-[10px] text-zinc-500 uppercase tracking-wider font-semibold">Auto-Lock</span>
-          <span className="text-xs font-mono text-zinc-300">{timeLeftFormatted}</span>
-        </div>
-      </div>
     </motion.div>
   );
 }

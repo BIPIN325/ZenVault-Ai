@@ -26,6 +26,7 @@ import { useInactivityLock } from "@/hooks/useInactivityLock";
 import IdentitySetup from "@/components/IdentitySetup";
 import UserProfileBadge from "@/components/UserProfileBadge";
 import { extractTextFromFile } from "@/utils/omniParser";
+import { CyberCard, StatReadout, Icons, DataTicker } from "@/components/TacticalUI";
 
 export default function Home() {
   const { isLocked, lockVault, isLoading, cryptoKey } = useAuth();
@@ -41,6 +42,49 @@ export default function Home() {
   const { timeLeftFormatted } = useInactivityLock();
   const { vaultDb, activeVault } = useVault();
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [displayProgress, setDisplayProgress] = useState(0);
+
+  useEffect(() => {
+    if (isDownloading) {
+      setDisplayProgress(prev => Math.max(prev, progressEvent?.progress || 0));
+    } else if (isReady) {
+      const interval = setInterval(() => {
+        setDisplayProgress(prev => {
+          if (prev >= 100) {
+            clearInterval(interval);
+            return 100;
+          }
+          return prev + (100 / (4000 / 50)); // Takes 4s to go from 0 to 100
+        });
+      }, 50);
+      return () => clearInterval(interval);
+    } else {
+      setDisplayProgress(0);
+    }
+  }, [isDownloading, isReady, progressEvent?.progress]);
+
+  const [logs, setLogs] = useState<string[]>([]);
+  useEffect(() => {
+    const messages = [
+      "[SYS] Memory optimized.",
+      "[SEC] AES-256 Check OK.",
+      "[NET] WebRTC Peer connected.",
+      "[DATA] Block 4Ax9 processed.",
+      "[SYS] Heartbeat signal sent.",
+      "[SEC] Key rotation schedule: 14m."
+    ];
+    let i = 0;
+    const interval = setInterval(() => {
+      setLogs(prev => {
+        const newLogs = [...prev, messages[i % messages.length]];
+        if (newLogs.length > 5) newLogs.shift();
+        return newLogs;
+      });
+      i++;
+    }, 2500);
+    return () => clearInterval(interval);
+  }, []);
+
 
   // Debug Helper and Initial Fetch
   useEffect(() => {
@@ -147,7 +191,21 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-[#09090b] flex flex-col selection:bg-violet-500/30 font-sans text-zinc-300">
+    <div className="flex h-screen bg-[#030304] text-zinc-300 font-sans overflow-hidden selection:bg-[#48A111]/40 relative">
+      
+      {/* --- Ambient Background Effects --- */}
+      {/* Grid Pattern */}
+      <div 
+        className="absolute inset-0 z-0 opacity-10 pointer-events-none"
+        style={{ backgroundImage: `linear-gradient(to right, #48A111 1px, transparent 1px), linear-gradient(to bottom, #48A111 1px, transparent 1px)`, backgroundSize: '60px 60px', maskImage: 'radial-gradient(circle at top right, black, transparent 70%)' }}
+      />
+      {/* CRT Vignette, Blur, & Scanline Overlay (Matching Login Page) */}
+      <div className="absolute inset-0 z-0 pointer-events-none backdrop-blur-sm bg-[radial-gradient(circle_at_center,transparent_50%,rgba(0,0,0,0.5)_100%)] mix-blend-multiply" />
+      <div className="absolute inset-0 z-0 pointer-events-none opacity-[0.03] bg-[linear-gradient(rgba(255,255,255,1)_50%,rgba(0,0,0,1)_50%)] bg-[length:100%_4px]" />
+      {/* Glowing Orbs */}
+      <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-[#48A111] blur-[150px] opacity-10 rounded-full animate-pulse" style={{ animationDuration: '8s' }} />
+      <div className="absolute bottom-[-20%] right-[-10%] w-[40%] h-[40%] bg-emerald-700 blur-[150px] opacity-[0.08] rounded-full animate-pulse" style={{ animationDuration: '10s' }} />
+
       <AnimatePresence mode="wait">
         {isLocked ? (
           <motion.div
@@ -161,294 +219,288 @@ export default function Home() {
             <LockScreen />
           </motion.div>
         ) : (
-          <motion.div
-            key="app-content"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.5 }}
-            className="flex flex-col h-screen"
-          >
+          <>
             {!isProfileChecking && !profile && (
               <IdentitySetup onComplete={() => {
                 getDecryptedProfile(cryptoKey!).then(p => setProfile(p));
               }} />
             )}
-
-            {/* Top Navigation */}
-            <header className="border-b border-white/5 bg-[#09090b]/80 px-6 py-4 flex items-center justify-between sticky top-0 z-40 backdrop-blur-2xl">
-              <div className="flex items-center gap-3 group cursor-pointer">
-                <motion.div 
-                  whileHover={{ rotate: 180 }}
-                  transition={{ duration: 0.5, ease: "easeInOut" }}
-                  className="w-9 h-9 bg-zinc-950 border border-white/10 text-violet-400 rounded-lg flex items-center justify-center shadow-[0_0_15px_rgba(139,92,246,0.15)] group-hover:shadow-[0_0_25px_rgba(139,92,246,0.3)] transition-shadow"
-                >
-                  <ShieldAlert className="w-4 h-4" />
-                </motion.div>
-                <h1 className="text-xl font-bold text-white tracking-tight text-glow-violet">
-                  ZenVault AI
-                </h1>
-              </div>
-              
-              <div className="flex items-center gap-4 z-50 relative">
-                <VaultSwitcher />
-                <div className="w-px h-6 bg-white/10 mx-1 hidden sm:block" />
-                <UserProfileBadge profile={profile} timeLeftFormatted={timeLeftFormatted} />
-                <motion.button 
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={lockVault}
-                  className="flex items-center gap-2 text-zinc-400 hover:text-white bg-zinc-950/80 hover:bg-zinc-900 px-4 py-2 rounded-lg transition-colors border border-white/5 shadow-sm"
-                >
-                  <LogOut className="w-4 h-4" />
-                  <span className="text-sm font-medium hidden sm:inline">Lock Vault</span>
-                </motion.button>
-              </div>
-            </header>
-
-            {/* Main Layout */}
-            <div className="flex flex-1 overflow-hidden relative">
-              {/* Background abstract mesh */}
-              <div className="absolute top-0 right-0 w-[40rem] h-[40rem] bg-violet-500/5 rounded-full blur-[120px] pointer-events-none -z-10" />
-              <div className="absolute bottom-0 left-0 w-[30rem] h-[30rem] bg-emerald-500/5 rounded-full blur-[120px] pointer-events-none -z-10" />
-
-              {/* Sidebar */}
-              <aside className="w-64 border-r border-white/5 bg-zinc-950/30 p-4 hidden md:flex flex-col gap-2 z-10">
-                <div className="text-[10px] font-bold text-zinc-600 uppercase tracking-widest mb-3 px-3 mt-4">Workspace</div>
-                
-                {[
-                  { id: 'chat', icon: TerminalSquare, label: 'Vault Chat' },
-                  { id: 'repository', icon: Database, label: 'Document Repository' },
-                  { id: 'graph', icon: Network, label: 'Knowledge Graph' },
-                  { id: 'keys', icon: Key, label: 'Cryptographic Keys' }
-                ].map((item) => {
-                  const Icon = item.icon;
-                  const isActive = activeView === item.id;
-                  return (
-                    <motion.button
-                      key={item.id}
-                      onClick={() => setActiveView(item.id as any)}
-                      whileHover={{ x: 4 }}
-                      whileTap={{ scale: 0.98 }}
-                      className={cn(
-                        "flex items-center gap-3 w-full px-4 py-3 rounded-xl text-left transition-all relative overflow-hidden group",
-                        isActive 
-                          ? "text-violet-300" 
-                          : "text-zinc-400 hover:text-zinc-200"
-                      )}
-                    >
-                      {isActive && (
-                        <motion.div
-                          layoutId="activeTabBackground"
-                          className="absolute inset-0 bg-violet-500/10 border border-violet-500/20 rounded-xl"
-                          initial={false}
-                          transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                        />
-                      )}
-                      <Icon className={cn("w-4 h-4 relative z-10", isActive && "text-violet-400 drop-shadow-[0_0_8px_rgba(139,92,246,0.5)]")} />
-                      <span className="text-sm font-medium relative z-10">{item.label}</span>
-                    </motion.button>
-                  );
-                })}
-              </aside>
-
-              {/* Main Content Area */}
-              <main className="flex-1 p-6 md:p-8 h-full overflow-hidden">
-                <div className="max-w-6xl mx-auto h-full">
-                  <AnimatePresence mode="wait">
-                    
-                    {activeView === 'repository' && (
-                      <motion.div 
-                        key="repository"
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -10 }}
-                        transition={{ duration: 0.3 }}
-                        className="h-full flex flex-col min-h-0"
-                      >
-                        <div className="flex items-center justify-between mb-6 shrink-0">
-                          <div>
-                            <h2 className="text-2xl font-bold text-white tracking-tight">Document Repository</h2>
-                            <p className="text-zinc-500 text-sm mt-1">Manage and ingest offline knowledge assets.</p>
-                          </div>
-                        </div>
-
-                        {/* Top Level Vault Stats */}
-                        <div className="shrink-0">
-                          <VaultStats metrics={vaultStats} />
-                        </div>
-
-                        {/* Bento Grid Layout */}
-                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 flex-1 min-h-0">
-                          
-                          {/* Left Column: Data Table & Uploader */}
-                          <div className="lg:col-span-2 flex flex-col gap-6 h-full min-h-0">
-                            
-                            {/* File Uploader Zone */}
-                            <div className="glass-card flex-shrink-0 h-48">
-                              <FileUploader 
-                                onFileProcessed={handleFileProcessed} 
-                                isProcessing={isProcessing} 
-                                isSuccess={uploadSuccess}
-                              />
-                            </div>
-
-                            {/* Indexed Documents Table Component */}
-                            <div className="glass-card flex-1 flex flex-col min-h-0 overflow-hidden relative">
-                              <div className="border-b border-white/5 bg-zinc-950/60 p-4 sticky top-0 z-10">
-                                <h3 className="text-sm font-semibold text-zinc-300 flex items-center gap-2">
-                                  <HardDrive className="w-4 h-4 text-violet-400" />
-                                  Indexed Document Vectors
-                                </h3>
-                              </div>
-                              <DocumentList 
-                                documents={documents} 
-                                onDocumentClick={setSelectedDoc} 
-                                onDocumentDeleted={() => setRefreshTrigger(prev => prev + 1)}
-                              />
-                            </div>
-
-                          </div>
-
-                          {/* Right Column: AI Engine Monitor */}
-                          <div className="lg:col-span-1 flex flex-col h-full gap-6">
-                            <div className="glass-card p-6 flex flex-col relative overflow-hidden group">
-                              <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/5 rounded-full blur-[50px] pointer-events-none group-hover:bg-emerald-500/10 transition-colors" />
-                              
-                              <h3 className="text-sm font-semibold text-zinc-300 flex items-center gap-2 mb-6">
-                                <Cpu className="w-4 h-4 text-emerald-400" />
-                                Local Engine Status
-                              </h3>
-                              
-                              <div className="space-y-6">
-                                <div>
-                                  <div className="flex justify-between text-xs mb-2">
-                                    <span className="text-zinc-500">Hardware Acceleration</span>
-                                    <span className="text-emerald-400 font-medium">WebGPU: Active</span>
-                                  </div>
-                                  <div className="flex justify-between text-xs mb-2">
-                                    <span className="text-zinc-500">Runtime Environment</span>
-                                    <span className="text-zinc-300">Sandboxed Worker</span>
-                                  </div>
-                                  <div className="flex justify-between text-xs mb-4">
-                                    <span className="text-zinc-500">Telemetry</span>
-                                    <span className="text-zinc-300">Disabled (0 bytes sent)</span>
-                                  </div>
-                                </div>
-
-                                <div className="border-t border-white/5 pt-6">
-                                  <span className="text-xs text-zinc-500 block mb-3 uppercase tracking-wider font-semibold">Model Pipeline</span>
-                                  
-                                  {isDownloading ? (
-                                    <div className="space-y-2">
-                                      <div className="flex items-center gap-2 text-xs text-violet-400">
-                                        <div className="w-2 h-2 rounded-full bg-violet-500 animate-pulse" />
-                                        Fetching Transformers...
-                                      </div>
-                                      <div className="font-mono text-xs text-zinc-400 bg-zinc-950 p-2 rounded-md border border-white/5">
-                                        {getProgressString(progressEvent?.progress || 0)}
-                                      </div>
-                                      <p className="text-[10px] text-zinc-600 truncate">{progressEvent?.file}</p>
-                                    </div>
-                                  ) : isReady ? (
-                                    <div className="space-y-2">
-                                      <div className="flex items-center gap-2 text-xs text-emerald-400">
-                                        <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
-                                        Engine Online & Ready
-                                      </div>
-                                      <div className="font-mono text-xs text-emerald-500/70 bg-emerald-500/5 p-2 rounded-md border border-emerald-500/10">
-                                        [██████████] 100%
-                                      </div>
-                                    </div>
-                                  ) : (
-                                    <div className="space-y-2">
-                                      <div className="flex items-center gap-2 text-xs text-zinc-500">
-                                        <div className="w-2 h-2 rounded-full bg-zinc-700" />
-                                        Engine Standby
-                                      </div>
-                                      <div className="font-mono text-xs text-zinc-600 bg-zinc-950 p-2 rounded-md border border-white/5">
-                                        [░░░░░░░░░░] 0%
-                                      </div>
-                                    </div>
-                                  )}
-                                </div>
-                              </div>
-                            </div>
-
-                            {/* Additional Security Card */}
-                            <div className="glass-card p-6 flex flex-col relative overflow-hidden flex-1">
-                              <h3 className="text-sm font-semibold text-zinc-300 flex items-center gap-2 mb-4">
-                                <ShieldAlert className="w-4 h-4 text-amber-500" />
-                                Cryptographic Integrity
-                              </h3>
-                              <p className="text-xs text-zinc-500 leading-relaxed">
-                                All local storage is encrypted using AES-GCM-256. The initialization vector (IV) is randomly generated per document chunk, ensuring semantic security against chosen-plaintext attacks.
-                              </p>
-                            </div>
-                          </div>
-
-                        </div>
-                      </motion.div>
-                    )}
-
-                    {activeView === 'chat' && (
-                      <motion.div
-                        key="chat"
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -10 }}
-                        transition={{ duration: 0.3 }}
-                        className="h-full"
-                      >
-                        <ChatInterface 
-                          isAiReady={isReady} 
-                          generateEmbedding={generateEmbedding} 
-                          hasDocuments={documents.length > 0} 
-                        />
-                      </motion.div>
-                    )}
-
-                    {activeView === 'keys' && (
-                      <motion.div
-                        key="keys"
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -10 }}
-                        transition={{ duration: 0.3 }}
-                        className="h-full pt-4"
-                      >
-                        <SettingsPanel />
-                      </motion.div>
-                    )}
-
-                    {activeView === 'graph' && (
-                      <motion.div
-                        key="graph"
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -10 }}
-                        transition={{ duration: 0.3 }}
-                        className="h-full pt-4"
-                      >
-                        <KnowledgeGraph3D onNodeClick={(id) => {
-                          const doc = documents.find(d => d.id === id);
-                          if (doc) setSelectedDoc(doc);
-                        }} />
-                      </motion.div>
-                    )}
-
-                  </AnimatePresence>
+            
+            {/* --- Sidebar --- */}
+            <aside className="relative z-20 w-72 border-r border-zinc-800/60 bg-[#070709]/80 backdrop-blur-2xl flex flex-col shadow-[10px_0_30px_rgba(0,0,0,0.5)] shrink-0">
+              {/* Logo Area */}
+              <div className="h-24 flex items-center px-8 gap-4 border-b border-zinc-800/60 shrink-0">
+                <div className="relative w-10 h-10 rounded-lg bg-gradient-to-br from-[#48A111] to-emerald-900 p-[1px]">
+                   <div className="w-full h-full bg-black rounded-lg flex items-center justify-center text-[#5cd61e]">
+                     <Icons.Shield />
+                   </div>
                 </div>
-              </main>
+                <div className="flex flex-col">
+                  <span className="text-xl font-bold text-white tracking-wider">ZenVault<span className="text-[#48A111]">.AI</span></span>
+                  <span className="text-[9px] font-mono text-[#48A111]/70 tracking-widest uppercase">Secure Enclave v3.1</span>
+                </div>
+              </div>
 
-              {/* Slide-over Drawer */}
-              <MetadataDrawer 
-                isOpen={!!selectedDoc} 
-                onClose={() => setSelectedDoc(null)} 
-                document={selectedDoc} 
-              />
+              {/* Nav Links */}
+              <div className="flex-1 py-8 px-5 flex flex-col gap-3 overflow-y-auto">
+                <div className="text-[10px] text-zinc-600 font-mono tracking-[0.2em] px-3 mb-3 uppercase">Workspace</div>
+                {[
+                  { id: 'chat', icon: <Icons.Chat />, label: 'Vault Chat' },
+                  { id: 'repository', icon: <Icons.Repo />, label: 'Document Repository' },
+                  { id: 'graph', icon: <Icons.Graph />, label: 'Knowledge Graph' },
+                  { id: 'keys', icon: <Icons.Key />, label: 'Cryptographic Keys' }
+                ].map((item) => (
+                  <button
+                    key={item.id}
+                    onClick={() => setActiveView(item.id as any)}
+                    className={`flex items-center gap-4 px-5 py-4 rounded-xl text-sm transition-all duration-300 relative overflow-hidden group
+                      ${activeView === item.id ? 'bg-gradient-to-r from-[#48A111]/20 to-transparent border border-[#48A111]/30 text-white' : 'text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800/40 border border-transparent'}
+                    `}
+                  >
+                    {activeView === item.id && (
+                      <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#48A111] shadow-[0_0_15px_#48A111]" />
+                    )}
+                    <span className={`transition-colors ${activeView === item.id ? 'text-[#5cd61e]' : 'text-zinc-500 group-hover:text-[#48A111]'}`}>
+                      {item.icon}
+                    </span>
+                    <span className="font-medium tracking-wide">{item.label}</span>
+                  </button>
+                ))}
+              </div>
+            </aside>
+
+            {/* --- Main Content Area --- */}
+            <main className="flex-1 flex flex-col relative z-10 h-screen overflow-y-auto overflow-x-hidden scrollbar-thin scrollbar-thumb-[#48A111]/30 scrollbar-track-transparent">
               
-            </div>
-          </motion.div>
+              {/* Top Navbar */}
+              <header className="h-24 flex items-center justify-between px-10 border-b border-zinc-800/60 bg-[#070709]/60 backdrop-blur-xl sticky top-0 z-30 shrink-0">
+                
+                {/* Decorative Breadcrumb/Ticker */}
+                <div className="flex items-center gap-4 text-xs font-mono text-zinc-500 bg-black/40 px-4 py-2 rounded-lg border border-zinc-800/50">
+                  <span className="animate-pulse w-2 h-2 bg-[#48A111] rounded-full" />
+                  <span>SESSION_HASH:</span>
+                  <DataTicker />
+                </div>
+                
+                <div className="flex items-center gap-6">
+                  {/* Context Selector */}
+                  <div className="flex items-center">
+                    <VaultSwitcher />
+                  </div>
+
+                  <div className="w-px h-10 bg-zinc-800/80" />
+
+                  {/* Profile */}
+                  <UserProfileBadge profile={profile} timeLeftFormatted={timeLeftFormatted} />
+
+                  {/* Auto Lock Timer */}
+                  <div className="flex items-center gap-3 bg-red-500/5 border border-red-500/20 px-4 py-2 rounded-lg">
+                    <div className="text-red-500"><Icons.Lock /></div>
+                    <div className="flex flex-col">
+                      <span className="text-[8px] text-red-500/70 font-mono tracking-widest uppercase">Auto-Lock</span>
+                      <span className="text-xs text-red-400 font-mono font-bold">{timeLeftFormatted}</span>
+                    </div>
+                  </div>
+
+                  {/* Lock Button (Premium styling) */}
+                  <button onClick={lockVault} className="flex items-center gap-3 text-sm text-red-400/90 border border-red-500/30 bg-red-500/5 px-6 py-3 rounded-xl hover:bg-red-500/10 hover:border-red-500/50 hover:text-red-300 transition-all font-medium tracking-wide ml-4">
+                    <Icons.Lock /> Secure Lock
+                  </button>
+                </div>
+              </header>
+
+              {/* Dashboard Content */}
+              <div className="p-10 max-w-[1600px] mx-auto w-full flex-1 flex flex-col">
+                <AnimatePresence mode="wait">
+                  
+                  {activeView === 'repository' && (
+                    <motion.div 
+                      key="repository"
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      transition={{ duration: 0.3 }}
+                      className="h-full flex flex-col min-h-0"
+                    >
+                      <div className="mb-10 flex justify-between items-end shrink-0">
+                        <div>
+                          <h1 className="text-3xl font-bold text-white tracking-tight">Document Repository</h1>
+                          <p className="text-zinc-400 text-sm mt-2 font-medium">Manage and ingest encrypted knowledge assets locally.</p>
+                        </div>
+                      </div>
+
+                      {/* Main Grid */}
+                      <div className="grid grid-cols-1 xl:grid-cols-3 gap-8 flex-1 min-h-0">
+                        
+                        {/* Left Column (Stats & Dropzone & DB) */}
+                        <div className="xl:col-span-2 flex flex-col gap-8 h-full min-h-0">
+                          
+                          {/* Top Stats Row */}
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 shrink-0">
+                            <CyberCard noPad>
+                              <div className="px-4 py-3">
+                                <StatReadout title="Indexed Docs" value={vaultStats?.totalDocuments || 0} icon={<Icons.Database />} />
+                              </div>
+                            </CyberCard>
+                            <CyberCard noPad>
+                              <div className="px-4 py-3">
+                                <StatReadout title="Secure Chunks" value={vaultStats?.totalChunks || 0} icon={<Icons.Shield />} />
+                              </div>
+                            </CyberCard>
+                            <CyberCard noPad>
+                              <div className="px-4 py-3">
+                                <StatReadout title="Vault Size" value={vaultStats?.totalStorageSize ? (vaultStats.totalStorageSize / 1024 / 1024).toFixed(2) + ' MB' : '0 Bytes'} icon={<Icons.HardDrive />} />
+                              </div>
+                            </CyberCard>
+                          </div>
+
+                          {/* Premium Dropzone */}
+                          <div className="shrink-0">
+                            <FileUploader 
+                              onFileProcessed={handleFileProcessed} 
+                              isProcessing={isProcessing} 
+                              isSuccess={uploadSuccess}
+                            />
+                          </div>
+
+                          {/* Document Vectors */}
+                          <CyberCard title="Indexed Vector DB" className="flex-1 min-h-[350px]" noPad>
+                            <DocumentList 
+                              documents={documents} 
+                              onDocumentClick={setSelectedDoc} 
+                              onDocumentDeleted={() => setRefreshTrigger(prev => prev + 1)}
+                            />
+                          </CyberCard>
+                        </div>
+
+                        {/* Right Column (Telemetry & Status) */}
+                        <div className="xl:col-span-1 flex flex-col gap-8 h-full overflow-y-auto">
+                          
+                          {/* Engine Status */}
+                          <CyberCard title="Local Engine Telemetry">
+                            <div className="flex flex-col gap-5 font-mono text-[11px] uppercase tracking-widest text-zinc-400">
+                              <div className="flex justify-between items-center bg-black/40 p-3 rounded-lg border border-zinc-800/50">
+                                <span>HW_Accel</span>
+                                <span className="text-[#5cd61e] flex items-center gap-2"><div className="w-1.5 h-1.5 bg-[#5cd61e] rounded-full animate-pulse"/> WebGPU Active</span>
+                              </div>
+                              <div className="flex justify-between items-center bg-black/40 p-3 rounded-lg border border-zinc-800/50">
+                                <span>Runtime</span>
+                                <span className="text-white">Sandboxed</span>
+                              </div>
+                              <div className="flex justify-between items-center bg-black/40 p-3 rounded-lg border border-zinc-800/50">
+                                <span>Telemetry</span>
+                                <span className="text-red-400">Disabled (0B)</span>
+                              </div>
+                            </div>
+
+                            <div className="mt-10">
+                              <div className="flex justify-between items-center mb-3 uppercase tracking-widest font-mono text-[10px]">
+                                <span className="text-[#48A111]">Model Pipeline</span>
+                                <span className={(isDownloading || displayProgress > 0) ? "text-[#48A111]" : "text-zinc-500"}>
+                                  {isDownloading || (isReady && displayProgress < 100) 
+                                    ? `${Math.round(displayProgress)}% // PROCESSING` 
+                                    : isReady ? '100% // ONLINE' : '0% // STANDBY'}
+                                </span>
+                              </div>
+                              
+                              {/* The Slicer Bar Container */}
+                              <div className="flex gap-1 h-8 w-full items-center">
+                                {[...Array(12)].map((_, i) => {
+                                  const progress = displayProgress;
+                                  const activeSlices = Math.floor((progress / 100) * 12);
+                                  const isActive = i < activeSlices;
+                                  return (
+                                    <div 
+                                      key={i} 
+                                      className={`flex-1 h-full skew-x-[-20deg] transition-all duration-300 ease-in-out border border-[#48A111]/20 ${
+                                        isActive 
+                                          ? 'bg-[#48A111] shadow-[0_0_15px_#48A111]' 
+                                          : 'bg-[#1a2512]'
+                                      }`}
+                                    />
+                                  );
+                                })}
+                              </div>
+                              {(isDownloading || (!isReady && displayProgress > 0)) && (
+                                <p className="text-[9px] font-mono text-zinc-600 truncate mt-2">{progressEvent?.file}</p>
+                              )}
+                            </div>
+                          </CyberCard>
+
+                          {/* Cryptographic Integrity */}
+                          <CyberCard title="Crypto Security">
+                            <div className="p-4 bg-red-500/5 border border-red-500/10 rounded-lg mb-5">
+                               <p className="text-[11px] font-mono text-zinc-400 leading-relaxed text-justify">
+                                 Local storage is encrypted via <span className="text-white font-bold">AES-GCM-256</span>. IV is randomly generated per chunk preventing statistical decryption attacks.
+                               </p>
+                            </div>
+                            <button className="mt-auto w-full bg-[#0c0c0e] border border-zinc-700/80 hover:border-[#48A111] hover:bg-[#48A111]/10 text-zinc-300 hover:text-[#5cd61e] text-xs font-semibold tracking-wide py-3.5 rounded-xl transition-all shadow-sm">
+                              Access Security Logs
+                            </button>
+                          </CyberCard>
+
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+
+                  {activeView === 'chat' && (
+                    <motion.div
+                      key="chat"
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      transition={{ duration: 0.3 }}
+                      className="h-full"
+                    >
+                      <ChatInterface 
+                        isAiReady={isReady} 
+                        generateEmbedding={generateEmbedding} 
+                        hasDocuments={documents.length > 0} 
+                      />
+                    </motion.div>
+                  )}
+
+                  {activeView === 'keys' && (
+                    <motion.div
+                      key="keys"
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      transition={{ duration: 0.3 }}
+                      className="h-full pt-4"
+                    >
+                      <SettingsPanel />
+                    </motion.div>
+                  )}
+
+                  {activeView === 'graph' && (
+                    <motion.div
+                      key="graph"
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      transition={{ duration: 0.3 }}
+                      className="h-full pt-4"
+                    >
+                      <KnowledgeGraph3D onNodeClick={(id) => {
+                        const doc = documents.find(d => d.id === id);
+                        if (doc) setSelectedDoc(doc);
+                      }} />
+                    </motion.div>
+                  )}
+
+                </AnimatePresence>
+              </div>
+            </main>
+            
+            {/* Slide-over Drawer */}
+            <MetadataDrawer 
+              isOpen={!!selectedDoc} 
+              onClose={() => setSelectedDoc(null)} 
+              document={selectedDoc} 
+            />
+          </>
         )}
       </AnimatePresence>
     </div>
