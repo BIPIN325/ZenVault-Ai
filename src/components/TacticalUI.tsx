@@ -1,24 +1,24 @@
 import React, { useState, useEffect } from 'react';
 
 export const CyberCard = ({ children, title, className = "", noPad = false }: { children: React.ReactNode, title?: string, className?: string, noPad?: boolean }) => (
-  <div className={`relative bg-[#0c0c0e]/60 backdrop-blur-xl border border-zinc-800/60 rounded-xl hover:border-[#48A111]/80 hover:shadow-[0_0_30px_rgba(72,161,17,0.15)] hover:bg-[#0c0c0e]/80 transition-all duration-500 overflow-hidden flex flex-col group ${className}`}>
+  <div className={`relative bg-[#0c0c0e]/60 backdrop-blur-xl border border-zinc-800/60 rounded-xl hover:border-[#3A8C1F]/80 hover:shadow-[0_0_30px_rgba(72,161,17,0.15)] hover:bg-[#0c0c0e]/80 transition-all duration-500 overflow-hidden flex flex-col group ${className}`}>
     
     {/* Animated Gradient Top Border */}
-    <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-[#48A111]/50 to-transparent scale-x-0 group-hover:scale-x-100 transition-transform duration-700 origin-left" />
+    <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-[#3A8C1F]/50 to-transparent scale-x-0 group-hover:scale-x-100 transition-transform duration-700 origin-left" />
     
     {/* Sci-Fi Corner Brackets */}
-    <div className="absolute top-2 left-2 w-3 h-3 border-t-2 border-l-2 border-[#48A111]/30 group-hover:border-[#48A111] transition-colors" />
-    <div className="absolute top-2 right-2 w-3 h-3 border-t-2 border-r-2 border-[#48A111]/30 group-hover:border-[#48A111] transition-colors" />
-    <div className="absolute bottom-2 left-2 w-3 h-3 border-b-2 border-l-2 border-[#48A111]/30 group-hover:border-[#48A111] transition-colors" />
-    <div className="absolute bottom-2 right-2 w-3 h-3 border-b-2 border-r-2 border-[#48A111]/30 group-hover:border-[#48A111] transition-colors" />
+    <div className="absolute top-2 left-2 w-3 h-3 border-t-2 border-l-2 border-[#3A8C1F]/30 group-hover:border-[#3A8C1F] transition-colors" />
+    <div className="absolute top-2 right-2 w-3 h-3 border-t-2 border-r-2 border-[#3A8C1F]/30 group-hover:border-[#3A8C1F] transition-colors" />
+    <div className="absolute bottom-2 left-2 w-3 h-3 border-b-2 border-l-2 border-[#3A8C1F]/30 group-hover:border-[#3A8C1F] transition-colors" />
+    <div className="absolute bottom-2 right-2 w-3 h-3 border-b-2 border-r-2 border-[#3A8C1F]/30 group-hover:border-[#3A8C1F] transition-colors" />
 
     {title && (
       <div className="px-5 py-4 border-b border-zinc-800/40 flex items-center justify-between z-10">
         <div className="flex items-center gap-3">
-          <div className="w-2 h-2 rounded-sm bg-[#48A111] animate-pulse shadow-[0_0_8px_#48A111]" />
+          <div className="w-2 h-2 rounded-sm bg-[#3A8C1F] animate-pulse shadow-[0_0_8px_#3A8C1F]" />
           <h3 className="text-zinc-200 text-sm font-semibold tracking-widest uppercase">{title}</h3>
         </div>
-        <div className="text-[9px] text-[#48A111]/50 font-mono tracking-widest hidden sm:block">SYS.NODE_ACTIVE</div>
+        <div className="text-[9px] text-[#3A8C1F]/50 font-mono tracking-widest hidden sm:block">SYS.NODE_ACTIVE</div>
       </div>
     )}
     <div className={`flex-1 flex flex-col relative z-10 ${noPad ? '' : 'p-6'}`}>
@@ -29,11 +29,11 @@ export const CyberCard = ({ children, title, className = "", noPad = false }: { 
 
 export const StatReadout = ({ title, value, icon }: { title: string, value: string | number, icon: React.ReactNode }) => (
   <div className="flex items-center gap-4">
-    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#48A111]/20 to-transparent border border-[#48A111]/40 flex items-center justify-center text-[#5cd61e] shadow-[inset_0_0_15px_rgba(72,161,17,0.1)] group-hover:shadow-[inset_0_0_25px_rgba(72,161,17,0.3)] transition-all">
+    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#3A8C1F]/20 to-transparent border border-[#3A8C1F]/40 flex items-center justify-center text-[#4AB022] shadow-[inset_0_0_15px_rgba(72,161,17,0.1)] group-hover:shadow-[inset_0_0_25px_rgba(72,161,17,0.3)] transition-all">
       {icon}
     </div>
     <div>
-      <div className="text-[9px] text-[#48A111] font-mono tracking-[0.2em] uppercase mb-0.5 opacity-80">{title}</div>
+      <div className="text-[9px] text-[#3A8C1F] font-mono tracking-[0.2em] uppercase mb-0.5 opacity-80">{title}</div>
       <div className="text-2xl text-white font-bold tracking-tight">{value}</div>
     </div>
   </div>
@@ -48,7 +48,7 @@ export const DataTicker = () => {
     }, 150);
     return () => clearInterval(interval);
   }, []);
-  return <span className="font-mono text-[#48A111]">{data}</span>;
+  return <span className="font-mono text-[#3A8C1F]">{data}</span>;
 };
 
 // --- Icons (Minimal Inline SVGs) ---

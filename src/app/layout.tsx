@@ -15,8 +15,11 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "ZenVault AI",
-  description: "Privacy-focused knowledge management and RAG application. Local-first, zero-knowledge.",
+  title: 'ZenVault AI | Local-First Document Intelligence',
+  description: 'Privacy-focused, on-device AI for indexing and querying private documents.',
+  icons: {
+    icon: '/favicon.ico',
+  },
 };
 
 export default function RootLayout({

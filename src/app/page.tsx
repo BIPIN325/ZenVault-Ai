@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 import LockScreen from "@/components/LockScreen";
@@ -191,19 +192,19 @@ export default function Home() {
   }
 
   return (
-    <div className="flex h-screen bg-[#030304] text-zinc-300 font-sans overflow-hidden selection:bg-[#48A111]/40 relative">
+    <div className="flex h-screen bg-[#030304] text-zinc-300 font-sans overflow-hidden selection:bg-[#3A8C1F]/40 relative">
       
       {/* --- Ambient Background Effects --- */}
       {/* Grid Pattern */}
       <div 
         className="absolute inset-0 z-0 opacity-10 pointer-events-none"
-        style={{ backgroundImage: `linear-gradient(to right, #48A111 1px, transparent 1px), linear-gradient(to bottom, #48A111 1px, transparent 1px)`, backgroundSize: '60px 60px', maskImage: 'radial-gradient(circle at top right, black, transparent 70%)' }}
+        style={{ backgroundImage: `linear-gradient(to right, #3A8C1F 1px, transparent 1px), linear-gradient(to bottom, #3A8C1F 1px, transparent 1px)`, backgroundSize: '60px 60px', maskImage: 'radial-gradient(circle at top right, black, transparent 70%)' }}
       />
       {/* CRT Vignette, Blur, & Scanline Overlay (Matching Login Page) */}
       <div className="absolute inset-0 z-0 pointer-events-none backdrop-blur-sm bg-[radial-gradient(circle_at_center,transparent_50%,rgba(0,0,0,0.5)_100%)] mix-blend-multiply" />
       <div className="absolute inset-0 z-0 pointer-events-none opacity-[0.03] bg-[linear-gradient(rgba(255,255,255,1)_50%,rgba(0,0,0,1)_50%)] bg-[length:100%_4px]" />
       {/* Glowing Orbs */}
-      <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-[#48A111] blur-[150px] opacity-10 rounded-full animate-pulse" style={{ animationDuration: '8s' }} />
+      <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-[#3A8C1F] blur-[150px] opacity-10 rounded-full animate-pulse" style={{ animationDuration: '8s' }} />
       <div className="absolute bottom-[-20%] right-[-10%] w-[40%] h-[40%] bg-emerald-700 blur-[150px] opacity-[0.08] rounded-full animate-pulse" style={{ animationDuration: '10s' }} />
 
       <AnimatePresence mode="wait">
@@ -229,15 +230,19 @@ export default function Home() {
             {/* --- Sidebar --- */}
             <aside className="relative z-20 w-72 border-r border-zinc-800/60 bg-[#070709]/80 backdrop-blur-2xl flex flex-col shadow-[10px_0_30px_rgba(0,0,0,0.5)] shrink-0">
               {/* Logo Area */}
-              <div className="h-24 flex items-center px-8 gap-4 border-b border-zinc-800/60 shrink-0">
-                <div className="relative w-10 h-10 rounded-lg bg-gradient-to-br from-[#48A111] to-emerald-900 p-[1px]">
-                   <div className="w-full h-full bg-black rounded-lg flex items-center justify-center text-[#5cd61e]">
-                     <Icons.Shield />
-                   </div>
+              <div className="h-24 flex items-center px-8 gap-4 border-b border-zinc-800/60 shrink-0 group cursor-pointer">
+                <div className="relative w-10 h-10 transition-transform group-hover:scale-105">
+                  <Image 
+                    src="/favicon-96x96.png" 
+                    alt="ZenVault AI Logo" 
+                    fill
+                    className="object-contain drop-shadow-[0_0_8px_rgba(34,197,94,0.6)]" 
+                    priority
+                  />
                 </div>
                 <div className="flex flex-col">
-                  <span className="text-xl font-bold text-white tracking-wider">ZenVault<span className="text-[#48A111]">.AI</span></span>
-                  <span className="text-[9px] font-mono text-[#48A111]/70 tracking-widest uppercase">Secure Enclave v3.1</span>
+                  <span className="text-xl font-bold tracking-[0.15em] text-[#4AB022] group-hover:text-[#3A8C1F] transition-colors">ZENVAULT</span>
+                  <span className="text-[9px] font-mono text-[#3A8C1F]/70 tracking-widest uppercase">Secure Enclave v3.1</span>
                 </div>
               </div>
 
@@ -254,13 +259,13 @@ export default function Home() {
                     key={item.id}
                     onClick={() => setActiveView(item.id as any)}
                     className={`flex items-center gap-4 px-5 py-4 rounded-xl text-sm transition-all duration-300 relative overflow-hidden group
-                      ${activeView === item.id ? 'bg-gradient-to-r from-[#48A111]/20 to-transparent border border-[#48A111]/30 text-white' : 'text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800/40 border border-transparent'}
+                      ${activeView === item.id ? 'bg-gradient-to-r from-[#3A8C1F]/20 to-transparent border border-[#3A8C1F]/30 text-white' : 'text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800/40 border border-transparent'}
                     `}
                   >
                     {activeView === item.id && (
-                      <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#48A111] shadow-[0_0_15px_#48A111]" />
+                      <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#3A8C1F] shadow-[0_0_15px_#3A8C1F]" />
                     )}
-                    <span className={`transition-colors ${activeView === item.id ? 'text-[#5cd61e]' : 'text-zinc-500 group-hover:text-[#48A111]'}`}>
+                    <span className={`transition-colors ${activeView === item.id ? 'text-[#4AB022]' : 'text-zinc-500 group-hover:text-[#3A8C1F]'}`}>
                       {item.icon}
                     </span>
                     <span className="font-medium tracking-wide">{item.label}</span>
@@ -270,14 +275,14 @@ export default function Home() {
             </aside>
 
             {/* --- Main Content Area --- */}
-            <main className="flex-1 flex flex-col relative z-10 h-screen overflow-y-auto overflow-x-hidden scrollbar-thin scrollbar-thumb-[#48A111]/30 scrollbar-track-transparent">
+            <main className="flex-1 flex flex-col relative z-10 h-screen overflow-y-auto overflow-x-hidden scrollbar-thin scrollbar-thumb-[#3A8C1F]/30 scrollbar-track-transparent">
               
               {/* Top Navbar */}
               <header className="h-24 flex items-center justify-between px-10 border-b border-zinc-800/60 bg-[#070709]/60 backdrop-blur-xl sticky top-0 z-30 shrink-0">
                 
                 {/* Decorative Breadcrumb/Ticker */}
                 <div className="flex items-center gap-4 text-xs font-mono text-zinc-500 bg-black/40 px-4 py-2 rounded-lg border border-zinc-800/50">
-                  <span className="animate-pulse w-2 h-2 bg-[#48A111] rounded-full" />
+                  <span className="animate-pulse w-2 h-2 bg-[#3A8C1F] rounded-full" />
                   <span>SESSION_HASH:</span>
                   <DataTicker />
                 </div>
@@ -381,7 +386,7 @@ export default function Home() {
                             <div className="flex flex-col gap-5 font-mono text-[11px] uppercase tracking-widest text-zinc-400">
                               <div className="flex justify-between items-center bg-black/40 p-3 rounded-lg border border-zinc-800/50">
                                 <span>HW_Accel</span>
-                                <span className="text-[#5cd61e] flex items-center gap-2"><div className="w-1.5 h-1.5 bg-[#5cd61e] rounded-full animate-pulse"/> WebGPU Active</span>
+                                <span className="text-[#4AB022] flex items-center gap-2"><div className="w-1.5 h-1.5 bg-[#4AB022] rounded-full animate-pulse"/> WebGPU Active</span>
                               </div>
                               <div className="flex justify-between items-center bg-black/40 p-3 rounded-lg border border-zinc-800/50">
                                 <span>Runtime</span>
@@ -395,8 +400,8 @@ export default function Home() {
 
                             <div className="mt-10">
                               <div className="flex justify-between items-center mb-3 uppercase tracking-widest font-mono text-[10px]">
-                                <span className="text-[#48A111]">Model Pipeline</span>
-                                <span className={(isDownloading || displayProgress > 0) ? "text-[#48A111]" : "text-zinc-500"}>
+                                <span className="text-[#3A8C1F]">Model Pipeline</span>
+                                <span className={(isDownloading || displayProgress > 0) ? "text-[#3A8C1F]" : "text-zinc-500"}>
                                   {isDownloading || (isReady && displayProgress < 100) 
                                     ? `${Math.round(displayProgress)}% // PROCESSING` 
                                     : isReady ? '100% // ONLINE' : '0% // STANDBY'}
@@ -412,9 +417,9 @@ export default function Home() {
                                   return (
                                     <div 
                                       key={i} 
-                                      className={`flex-1 h-full skew-x-[-20deg] transition-all duration-300 ease-in-out border border-[#48A111]/20 ${
+                                      className={`flex-1 h-full skew-x-[-20deg] transition-all duration-300 ease-in-out border border-[#3A8C1F]/20 ${
                                         isActive 
-                                          ? 'bg-[#48A111] shadow-[0_0_15px_#48A111]' 
+                                          ? 'bg-[#3A8C1F] shadow-[0_0_15px_#3A8C1F]' 
                                           : 'bg-[#1a2512]'
                                       }`}
                                     />
@@ -434,7 +439,7 @@ export default function Home() {
                                  Local storage is encrypted via <span className="text-white font-bold">AES-GCM-256</span>. IV is randomly generated per chunk preventing statistical decryption attacks.
                                </p>
                             </div>
-                            <button className="mt-auto w-full bg-[#0c0c0e] border border-zinc-700/80 hover:border-[#48A111] hover:bg-[#48A111]/10 text-zinc-300 hover:text-[#5cd61e] text-xs font-semibold tracking-wide py-3.5 rounded-xl transition-all shadow-sm">
+                            <button className="mt-auto w-full bg-[#0c0c0e] border border-zinc-700/80 hover:border-[#3A8C1F] hover:bg-[#3A8C1F]/10 text-zinc-300 hover:text-[#4AB022] text-xs font-semibold tracking-wide py-3.5 rounded-xl transition-all shadow-sm">
                               Access Security Logs
                             </button>
                           </CyberCard>

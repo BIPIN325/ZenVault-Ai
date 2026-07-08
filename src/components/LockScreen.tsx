@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { Shield, Fingerprint, AlertCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import Image from 'next/image';
 
 // Lightweight Matrix Rain Effect Component
 const MatrixBackground = () => {
@@ -183,8 +184,8 @@ export default function LockScreen() {
           transition={{ duration: 0.5, repeat: Infinity, repeatType: "reverse" }}
           className="flex flex-col items-center"
         >
-          <Shield className="w-12 h-12 text-[#48A111] mb-4 drop-shadow-[0_0_10px_rgba(72,161,17,0.5)]" />
-          <p className="text-[#48A111] font-mono tracking-widest text-sm uppercase drop-shadow-[0_0_5px_rgba(72,161,17,0.8)]">Initializing Enclave...</p>
+          <Shield className="w-12 h-12 text-[#3A8C1F] mb-4 drop-shadow-[0_0_10px_rgba(72,161,17,0.5)]" />
+          <p className="text-[#3A8C1F] font-mono tracking-widest text-sm uppercase drop-shadow-[0_0_5px_rgba(72,161,17,0.8)]">Initializing Enclave...</p>
         </motion.div>
       </div>
     );
@@ -214,14 +215,14 @@ export default function LockScreen() {
         <motion.div
           animate={{ top: ['-20%', '120%'] }}
           transition={{ duration: 10, ease: 'linear', repeat: Infinity }}
-          className="absolute left-0 right-0 h-16 bg-gradient-to-b from-transparent via-[#48A111]/[0.1] to-transparent border-b border-[#48A111]/[0.4]"
+          className="absolute left-0 right-0 h-16 bg-gradient-to-b from-transparent via-[#3A8C1F]/[0.1] to-transparent border-b border-[#3A8C1F]/[0.4]"
         />
         
         {/* Horizontal Data Sweep */}
         <motion.div
           animate={{ left: ['-50%', '150%'] }}
           transition={{ duration: 15, ease: 'linear', repeat: Infinity }}
-          className="absolute top-0 bottom-0 w-24 bg-gradient-to-r from-transparent via-[#48A111]/[0.1] to-transparent border-r border-[#48A111]/[0.4]"
+          className="absolute top-0 bottom-0 w-24 bg-gradient-to-r from-transparent via-[#3A8C1F]/[0.1] to-transparent border-r border-[#3A8C1F]/[0.4]"
         />
 
         {/* Tactical Corner Brackets */}
@@ -232,49 +233,65 @@ export default function LockScreen() {
 
         {/* Top-Right Status Cluster */}
         <div className="hidden md:flex absolute top-6 right-6 lg:top-12 lg:right-12 gap-2 z-[60] pointer-events-none">
-          <motion.div animate={{ opacity: [1, 0.3, 1] }} transition={{ duration: 1.2, repeat: Infinity, delay: 0 }} className="w-3 h-3 bg-[#48A111]/80" />
-          <motion.div animate={{ opacity: [0.2, 1, 0.2] }} transition={{ duration: 0.8, repeat: Infinity, delay: 0.4 }} className="w-3 h-3 bg-[#48A111]/80" />
-          <div className="w-3 h-3 bg-[#48A111]/20 border border-[#48A111]/60" />
-          <motion.div animate={{ opacity: [1, 0.1, 1] }} transition={{ duration: 2.5, repeat: Infinity, delay: 0.2 }} className="w-3 h-3 bg-[#48A111]/90" />
+          <motion.div animate={{ opacity: [1, 0.3, 1] }} transition={{ duration: 1.2, repeat: Infinity, delay: 0 }} className="w-3 h-3 bg-[#3A8C1F]/80" />
+          <motion.div animate={{ opacity: [0.2, 1, 0.2] }} transition={{ duration: 0.8, repeat: Infinity, delay: 0.4 }} className="w-3 h-3 bg-[#3A8C1F]/80" />
+          <div className="w-3 h-3 bg-[#3A8C1F]/20 border border-[#3A8C1F]/60" />
+          <motion.div animate={{ opacity: [1, 0.1, 1] }} transition={{ duration: 2.5, repeat: Infinity, delay: 0.2 }} className="w-3 h-3 bg-[#3A8C1F]/90" />
         </div>
 
         {/* Bottom-Left Memory/Barcode Blocks */}
-        <div className="hidden md:flex absolute bottom-6 left-6 lg:bottom-12 lg:left-12 items-end gap-2 z-[60] pointer-events-none">
-          <motion.div animate={{ height: ['2.5rem', '1.5rem', '2.5rem'] }} transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }} className="w-2.5 bg-[#48A111]/50" />
-          <motion.div animate={{ height: ['3.5rem', '2rem', '3.5rem'] }} transition={{ duration: 2.1, repeat: Infinity, ease: "easeInOut" }} className="w-2.5 bg-[#48A111]/70" />
-          <div className="w-2.5 h-5 bg-[#48A111]/90" />
-          <motion.div animate={{ height: ['3rem', '4rem', '3rem'] }} transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }} className="w-2.5 bg-[#48A111]/40" />
-          <motion.div animate={{ height: ['2rem', '3rem', '2rem'] }} transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }} className="w-2.5 bg-[#48A111]/60" />
+        <div className="hidden md:flex absolute bottom-6 left-6 lg:bottom-12 lg:left-12 items-end gap-2 z-[60] pointer-events-none animate-pulse drop-shadow-[0_0_25px_#4AB022]">
+          <motion.div animate={{ height: ['2.5rem', '1.5rem', '2.5rem'] }} transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }} className="w-2.5 bg-[#4AB022]/50" />
+          <motion.div animate={{ height: ['3.5rem', '2rem', '3.5rem'] }} transition={{ duration: 2.1, repeat: Infinity, ease: "easeInOut" }} className="w-2.5 bg-[#4AB022]/70" />
+          <div className="w-2.5 h-5 bg-[#4AB022]/90" />
+          <motion.div animate={{ height: ['3rem', '4rem', '3rem'] }} transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }} className="w-2.5 bg-[#4AB022]/40" />
+          <motion.div animate={{ height: ['2rem', '3rem', '2rem'] }} transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }} className="w-2.5 bg-[#4AB022]/60" />
         </div>
 
         {/* Top-Left Alignment Lines & Live Telemetry */}
         <div className="absolute top-4 left-4 md:top-6 md:left-6 lg:top-12 lg:left-12 flex flex-col gap-2 z-[60] pointer-events-none">
-          <motion.div animate={{ width: ['5rem', '6rem', '5rem'] }} transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }} className="h-1.5 bg-[#48A111] drop-shadow-[0_0_5px_rgba(72,161,17,0.8)]" />
-          <div className="w-10 h-1.5 bg-[#48A111]/50" />
-          <motion.div animate={{ opacity: [0.3, 0.9, 0.3] }} transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }} className="w-6 h-1.5 bg-[#48A111]/80" />
-          <div className="mt-2 text-xs text-[#48A111]/90 tracking-widest font-mono whitespace-nowrap">
+          <motion.div animate={{ width: ['5rem', '6rem', '5rem'] }} transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }} className="h-1.5 bg-[#3A8C1F] drop-shadow-[0_0_5px_rgba(72,161,17,0.8)]" />
+          <div className="w-10 h-1.5 bg-[#3A8C1F]/50" />
+          <motion.div animate={{ opacity: [0.3, 0.9, 0.3] }} transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }} className="w-6 h-1.5 bg-[#3A8C1F]/80" />
+          <div className="mt-2 text-xs text-[#3A8C1F]/90 tracking-widest font-mono whitespace-nowrap">
             <div>SYS.OP: {status === 'GRANTED' ? 'ONLINE' : 'LOCKED'}</div>
             <div>{time}</div>
           </div>
         </div>
 
         {/* Bottom-Right Calibration Square */}
-        <div className="hidden md:flex absolute bottom-6 right-6 lg:bottom-12 lg:right-12 items-center justify-center w-16 h-16 z-[60] pointer-events-none">
+        <div className="hidden md:flex absolute bottom-6 right-6 lg:bottom-12 lg:right-12 items-center justify-center w-16 h-16 z-[60] pointer-events-none animate-pulse drop-shadow-[0_0_25px_#4AB022]">
           <motion.div 
             animate={{ rotate: 360 }} 
             transition={{ duration: 10, ease: "linear", repeat: Infinity }}
-            className="absolute inset-0 border-[2px] border-[#48A111]/20"
+            className="absolute inset-0 border-[2px] border-[#4AB022]/40"
           >
-            <div className="absolute top-0 right-0 w-3 h-3 bg-[#48A111]/80" />
-            <div className="absolute bottom-0 left-0 w-2.5 h-2.5 bg-[#48A111]/60" />
+            <div className="absolute top-0 right-0 w-3 h-3 bg-[#4AB022]/90" />
+            <div className="absolute bottom-0 left-0 w-2.5 h-2.5 bg-[#4AB022]/70" />
           </motion.div>
           <motion.div 
-            animate={{ scale: [1, 1.3, 1], opacity: [0.4, 0.9, 0.4] }} 
+            animate={{ scale: [1, 1.3, 1] }} 
             transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-            className="w-4 h-4 bg-[#48A111]/50" 
+            className="w-4 h-4 bg-[#4AB022]/80" 
           />
         </div>
       </div>
+
+      {/* 3D Branding Asset */}
+      <motion.div 
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.5, delay: 0.2 }}
+        className="relative z-10 w-48 h-48 flex justify-center mb-6"
+      >
+        <Image 
+          src="/favicon.svg" 
+          alt="ZenVault AI Secure Login" 
+          fill
+          className="object-contain animate-pulse drop-shadow-[0_0_20px_rgba(58,140,31,0.5)]"
+          priority 
+        />
+      </motion.div>
 
       {/* Main Industrial Panel */}
       <motion.div 
